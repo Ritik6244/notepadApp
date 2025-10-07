@@ -25,14 +25,13 @@ public class NotepadController {
         return true;
     }
 
-
     @GetMapping("/id/{myId}")
     public Notepad searchById(@PathVariable int myId){
         return notepadEntry.get(myId);
     }
 
     @DeleteMapping("/id/{myId}")
-    public boolean deleteNote(@PathVariable int myId){
+    public boolean deleteNoteById(@PathVariable int myId){
         notepadEntry.remove(myId);
         return true;
     }
