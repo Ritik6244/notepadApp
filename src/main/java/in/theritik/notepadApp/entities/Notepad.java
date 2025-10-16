@@ -1,28 +1,43 @@
 package in.theritik.notepadApp.entities;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@EntityScan
+import java.time.LocalDateTime;
+
+@Document(collection = "notepad_entries")
 public class Notepad {
 
-    private int Id;
+    @Id
+    private ObjectId id;
     private String title;
-    private String note;
+    private String content;
+    private LocalDateTime date;
 
-    public String getNote() {
-        return note;
+    public LocalDateTime getDate() {
+        return date;
     }
 
-    public void setNote(String note) {
-        this.note = note;
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 
-    public int getId() {
-        return Id;
+
+    public String getContent() {
+        return content;
     }
 
-    public void setId(int id) {
-        Id = id;
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getTitle() {

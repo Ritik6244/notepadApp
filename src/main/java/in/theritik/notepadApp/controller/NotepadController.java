@@ -1,44 +1,46 @@
 package in.theritik.notepadApp.controller;
 
 import in.theritik.notepadApp.entities.Notepad;
+import in.theritik.notepadApp.services.NotepadService;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController()
 @RequestMapping("/notepad")
 public class NotepadController {
 
-    private Map<Integer, Notepad> notepadEntry = new HashMap<>();
+    @Autowired
+    private NotepadService notepadService;
 
     @GetMapping
     public List<Notepad> getAll(){
-        return new ArrayList<>(notepadEntry.values());
+        return notepadService.getAllNotes();
     }
 
     @PostMapping
-    public boolean createEntry(@RequestBody Notepad note){
-        notepadEntry.put(note.getId(), note);
-        return true;
+    public Notepad createEntry(@RequestBody Notepad note){
+        note.setDate(LocalDateTime.now());
+        notepadService.saveNotepadEntry(note);
+        return note;
     }
 
-    @GetMapping("/id/{myId}")
-    public Notepad searchById(@PathVariable int myId){
-        return notepadEntry.get(myId);
+    @GetMapping("id/{takeId}")
+    public Notepad searchById(@PathVariable ObjectId takeId){
+         return notepadService.getNoteById(takeId).orElse(null);
     }
 
-    @DeleteMapping("/id/{myId}")
-    public boolean deleteNoteById(@PathVariable int myId){
-        notepadEntry.remove(myId);
-        return true;
+    @DeleteMapping("id/{takeId}")
+    public boolean deleteNoteById(@PathVariable ObjectId takeId){
+        return notepadService.deleteNoteById(takeId);
     }
 
-    @PutMapping("/id/{id}")
-    public Notepad updateNote(@PathVariable int id, @RequestBody Notepad note){
-        notepadEntry.put(id, note);
+    @PutMapping("id/{id}")
+    public Notepad updateNote(@PathVariable ObjectId id, @RequestBody Notepad note){
+        notepadService.updateNote(id, note);
         return note;
     }
 
