@@ -33,6 +33,7 @@ public class NotepadController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+
     @PostMapping("{userName}")
     public ResponseEntity<Notepad> createEntry(@RequestBody Notepad note, @PathVariable String userName){
         try {
