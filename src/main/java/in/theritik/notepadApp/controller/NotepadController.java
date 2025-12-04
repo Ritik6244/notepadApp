@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RestController()
+@RestController
 @RequestMapping("/notepad")
 public class NotepadController {
 
@@ -23,7 +23,7 @@ public class NotepadController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("{userName}")
+    @GetMapping("/{userName}")
     public ResponseEntity<?> getAllNotesOfUser(@PathVariable String userName){
         User user = userService.findByUserName(userName);
         List<Notepad> all = user.getNotepadEntries();
@@ -33,8 +33,7 @@ public class NotepadController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-
-    @PostMapping("{userName}")
+    @PostMapping("/{userName}")
     public ResponseEntity<Notepad> createEntry(@RequestBody Notepad note, @PathVariable String userName){
         try {
             notepadService.saveNotepadEntry(note, userName);
@@ -44,7 +43,7 @@ public class NotepadController {
         }
     }
 
-    @GetMapping("id/{takeId}")
+    @GetMapping("/id/{takeId}")
     public ResponseEntity<Optional<Notepad>> searchById(@PathVariable ObjectId takeId){
         Optional<Notepad> foundNote = notepadService.getNoteById(takeId);
         if (foundNote.isPresent())

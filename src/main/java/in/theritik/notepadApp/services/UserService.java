@@ -1,15 +1,15 @@
 package in.theritik.notepadApp.services;
 
-import in.theritik.notepadApp.entities.Notepad;
 import in.theritik.notepadApp.entities.User;
-import in.theritik.notepadApp.repositories.NotepadRepository;
 import in.theritik.notepadApp.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +20,8 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public List<User> getAllUsers(){
         return userRepository.findAll();
     }
@@ -29,11 +31,9 @@ public class UserService {
     }
 
     public void saveUserEntry(User user){
-        try{
-            userRepository.save(user);
-        } catch (Exception e) {
-            log.error("Exception ", e);
-        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(Arrays.asList("USER"));
+        userRepository.save(user);
     }
 
     public boolean deleteUserById(ObjectId id){
@@ -48,6 +48,10 @@ public class UserService {
 
     public User findByUserName(String userName){
         return userRepository.findByUserName(userName);
+    }
+
+    public void deleteUserByName(String username) {
+        userRepository.deleteByUserName(username);
     }
 
 //    public Notepad updateNote(ObjectId id, Notepad note){
