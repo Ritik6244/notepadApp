@@ -38,7 +38,7 @@ public class NotepadService  {
             notepadEntry.setDate(LocalDateTime.now());
             Notepad saved = notepadRepository.save(notepadEntry);
             user.getNotepadEntries().add(saved);
-            userService.saveUserEntry(user);
+            userService.saveUser(user);
         } catch (Exception e) {
             log.error("Exception ", e);
             throw new RuntimeException("Entry is wrong :", e);
@@ -49,12 +49,21 @@ public class NotepadService  {
             notepadRepository.save(notepadEntry);
     }
 
-    public void deleteNoteById(ObjectId id, String userName){
-        User user = userService.findByUserName(userName);
-        user.getNotepadEntries().removeIf(x -> x.getId().equals(id));
-        userService.saveUserEntry(user);
-        notepadRepository.deleteById(id);
+    @Transactional
+    public boolean deleteNoteById(ObjectId id, String userName){
+        boolean removed = false;
+        try{
+            User user = userService.findByUserName(userName);
+            removed = user.getNotepadEntries().removeIf(x -> x.getId().equals(id));
+            if (removed){
+                userService.saveNewUser(user);
+                notepadRepository.deleteById(id);
+            }
+        }catch (Exception e){
+            System.out.println("Couldn't delete note: "+ e);
         }
+        return removed;
+    }
 
 //    public Notepad updateNote(ObjectId id, Notepad note){
 //        Optional<Notepad> existingNote = notepadRepository.findById(id);

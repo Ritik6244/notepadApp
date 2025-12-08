@@ -8,10 +8,13 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notepad")
@@ -23,8 +26,10 @@ public class NotepadController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/{userName}")
-    public ResponseEntity<?> getAllNotesOfUser(@PathVariable String userName){
+    @GetMapping()
+    public ResponseEntity<?> getAllNotesOfUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
         User user = userService.findByUserName(userName);
         List<Notepad> all = user.getNotepadEntries();
         if(all != null && !all.isEmpty()){
@@ -33,9 +38,11 @@ public class NotepadController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/{userName}")
-    public ResponseEntity<Notepad> createEntry(@RequestBody Notepad note, @PathVariable String userName){
+    @PostMapping()
+    public ResponseEntity<Notepad> createEntry(@RequestBody Notepad note){
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userName = authentication.getName();
             notepadService.saveNotepadEntry(note, userName);
             return new ResponseEntity<>(note, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -45,28 +52,47 @@ public class NotepadController {
 
     @GetMapping("/id/{takeId}")
     public ResponseEntity<Optional<Notepad>> searchById(@PathVariable ObjectId takeId){
-        Optional<Notepad> foundNote = notepadService.getNoteById(takeId);
-        if (foundNote.isPresent())
-             return new ResponseEntity<>(foundNote, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @DeleteMapping("/{userName}/{takeId}")
-    public ResponseEntity<?> deleteNoteById(@PathVariable String userName ,@PathVariable ObjectId takeId){
-        notepadService.deleteNoteById(takeId, userName);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-    @PutMapping("/{userName}/{id}")
-    public ResponseEntity<Notepad> updateNote(@PathVariable ObjectId id, @RequestBody Notepad note, @PathVariable String userName){
-        Notepad existingNote = notepadService.getNoteById(id).orElse(null);
-        if(existingNote != null){
-            existingNote.setTitle(note.getTitle());
-            existingNote.setContent(note.getContent());
-            notepadService.saveNotepadEntry(existingNote);
-            return new ResponseEntity<>(existingNote, HttpStatus.OK);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        User user = userService.findByUserName(userName);
+        List<Notepad> allNotes = user.getNotepadEntries().stream().filter(x -> x.getId().equals(takeId)).collect(Collectors.toList());
+        if (!allNotes.isEmpty()) {
+            Optional<Notepad> foundNote = notepadService.getNoteById(takeId);
+            if (foundNote.isPresent()) {
+                return new ResponseEntity<>(foundNote, HttpStatus.OK);
+            }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @DeleteMapping("/id/{takeId}")
+    public ResponseEntity<?> deleteNoteById(@PathVariable ObjectId takeId){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        boolean removed = notepadService.deleteNoteById(takeId, userName);
+        if(removed){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+     }
+
+    @PutMapping("/id/{id}")
+    public ResponseEntity<?> updateNote(@PathVariable ObjectId id, @RequestBody Notepad newNote){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        User user = userService.findByUserName(userName);
+        List<Notepad> allNotes = user.getNotepadEntries().stream().filter(x -> x.getId().equals(id)).collect(Collectors.toList());
+        if (!allNotes.isEmpty()) {
+            Optional<Notepad> foundNote = notepadService.getNoteById(id);
+            if (foundNote.isPresent()) {
+                Notepad oldNote = foundNote.get();
+                oldNote.setTitle(newNote.getTitle() != null && !newNote.getTitle().equals("") ? newNote.getTitle() : oldNote.getTitle());
+                oldNote.setContent(newNote.getContent() != null && !newNote.getContent().equals("") ? newNote.getContent() : oldNote.getContent());
+                notepadService.saveNotepadEntry(oldNote);
+                return new ResponseEntity<>(foundNote, HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 }

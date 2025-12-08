@@ -30,7 +30,7 @@ public class UserController {
         User existingUser = userService.findByUserName(userName);
         existingUser.setUserName(user.getUserName());
         existingUser.setPassword(user.getPassword());
-        userService.saveUserEntry(existingUser);
+        userService.saveUser(existingUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @DeleteMapping
