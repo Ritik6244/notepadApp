@@ -22,7 +22,6 @@ public class NotepadController {
 
     @Autowired
     private NotepadService notepadService;
-
     @Autowired
     private UserService userService;
 
