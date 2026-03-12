@@ -81,13 +81,13 @@ public class NotepadController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         User user = userService.findByUserName(userName);
-        List<Notepad> allNotes = user.getNotepadEntries().stream().filter(x -> x.getId().equals(id)).collect(Collectors.toList());
+        List<Notepad> allNotes = user.getNotepadEntries().stream().filter(x -> x.getId().equals(id)).toList();
         if (!allNotes.isEmpty()) {
             Optional<Notepad> foundNote = notepadService.getNoteById(id);
             if (foundNote.isPresent()) {
                 Notepad oldNote = foundNote.get();
-                oldNote.setTitle(newNote.getTitle() != null && !newNote.getTitle().equals("") ? newNote.getTitle() : oldNote.getTitle());
-                oldNote.setContent(newNote.getContent() != null && !newNote.getContent().equals("") ? newNote.getContent() : oldNote.getContent());
+                oldNote.setTitle(newNote.getTitle() != null && !newNote.getTitle().isEmpty() ? newNote.getTitle() : oldNote.getTitle());
+                oldNote.setContent(newNote.getContent() != null && !newNote.getContent().isEmpty() ? newNote.getContent() : oldNote.getContent());
                 notepadService.saveNotepadEntry(oldNote);
                 return new ResponseEntity<>(foundNote, HttpStatus.OK);
             }
