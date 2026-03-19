@@ -1,0 +1,8 @@
+#spring:
+#  application:
+#    name: Notepad App
+#  data:
+#    mongodb:
+#          uri: mongodb+srv://ritik:ritik@cluster0.bxjcbpr.mongodb.net/?appName=Cluster0
+#          database: notepaddb
+#          auto-index-creation: true
